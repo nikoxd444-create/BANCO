@@ -5,7 +5,7 @@ import mysql.connector
 # ------------------ CONEXIÓN ------------------
 conexion = mysql.connector.connect(
     host="localhost",
-    user="root",   # cambia si usas root
+    user="root",
     password="",
     database="billetera"
 )
@@ -22,7 +22,8 @@ BTN_COLOR = "#1a1a2e"
 FONT_TITLE = ("Consolas", 22, "bold")
 FONT_NORMAL = ("Consolas", 14)
 
-# ------------------ OBTENER BALANCE ------------------
+
+# ------------------ BALANCE ------------------
 def obtener_balance_usuario():
     cursor.execute("""
         SELECT 
@@ -80,6 +81,14 @@ def abrir_sistema():
     ventana.geometry("1000x650")
     ventana.configure(bg=BG_COLOR)
 
+    # -------- CERRAR SESIÓN --------
+    def cerrar_sesion():
+        global usuario_actual, nombre_actual
+        usuario_actual = None
+        nombre_actual = None
+        ventana.destroy()
+        abrir_login()
+
     # Título
     tk.Label(ventana,
              text=f"Bienvenido, {nombre_actual}",
@@ -109,13 +118,17 @@ def abrir_sistema():
     entry_monto = tk.Entry(frame_inputs, font=FONT_NORMAL, width=20)
     entry_monto.grid(row=1, column=1, pady=5)
 
-    # -------- FUNCIONES INTERNAS --------
     def actualizar_balance():
         balance = obtener_balance_usuario()
         lbl_balance.config(text=f"Balance Actual: $ {balance:,.2f}")
 
     def agregar_ingreso():
-        monto = float(entry_monto.get())
+        try:
+            monto = float(entry_monto.get())
+        except:
+            messagebox.showerror("Error", "Monto inválido")
+            return
+
         cursor.execute("""
             INSERT INTO movimientos (usuario_id, tipo, descripcion, monto)
             VALUES (%s,'Ingreso',%s,%s)
@@ -184,6 +197,11 @@ def abrir_sistema():
               font=FONT_NORMAL,
               command=borrar).grid(row=2, column=2, padx=10)
 
+    tk.Button(ventana, text="Cerrar Sesión",
+              bg="#222244", fg="white",
+              font=("Consolas", 12, "bold"),
+              command=cerrar_sesion).pack(pady=10)
+
     # -------- TABLA --------
     tabla = ttk.Treeview(ventana,
                          columns=("ID","Usuario","Tipo","Desc","Monto","Fecha"),
@@ -202,43 +220,50 @@ def abrir_sistema():
 
 
 # ------------------ VENTANA LOGIN ------------------
-ventana_login = tk.Tk()
-ventana_login.title("Login Futurista")
-ventana_login.geometry("550x600")
-ventana_login.configure(bg=BG_COLOR)
+def abrir_login():
+    global ventana_login, entry_nombre, entry_email, entry_password
 
-tk.Label(ventana_login,
-         text="SISTEMA FINANCIERO",
-         font=FONT_TITLE,
-         fg=FG_COLOR,
-         bg=BG_COLOR).pack(pady=40)
+    ventana_login = tk.Tk()
+    ventana_login.title("Login Futurista")
+    ventana_login.geometry("550x600")
+    ventana_login.configure(bg=BG_COLOR)
 
-tk.Label(ventana_login, text="Nombre (Registro)",
-         font=FONT_NORMAL, fg=FG_COLOR, bg=BG_COLOR).pack()
+    tk.Label(ventana_login,
+             text="SISTEMA FINANCIERO",
+             font=FONT_TITLE,
+             fg=FG_COLOR,
+             bg=BG_COLOR).pack(pady=40)
 
-entry_nombre = tk.Entry(ventana_login, font=FONT_NORMAL, width=25)
-entry_nombre.pack(pady=5)
+    tk.Label(ventana_login, text="Nombre (Registro)",
+             font=FONT_NORMAL, fg=FG_COLOR, bg=BG_COLOR).pack()
 
-tk.Label(ventana_login, text="Email",
-         font=FONT_NORMAL, fg=FG_COLOR, bg=BG_COLOR).pack()
+    entry_nombre = tk.Entry(ventana_login, font=FONT_NORMAL, width=25)
+    entry_nombre.pack(pady=5)
 
-entry_email = tk.Entry(ventana_login, font=FONT_NORMAL, width=25)
-entry_email.pack(pady=5)
+    tk.Label(ventana_login, text="Email",
+             font=FONT_NORMAL, fg=FG_COLOR, bg=BG_COLOR).pack()
 
-tk.Label(ventana_login, text="Password",
-         font=FONT_NORMAL, fg=FG_COLOR, bg=BG_COLOR).pack()
+    entry_email = tk.Entry(ventana_login, font=FONT_NORMAL, width=25)
+    entry_email.pack(pady=5)
 
-entry_password = tk.Entry(ventana_login, show="*", font=FONT_NORMAL, width=25)
-entry_password.pack(pady=5)
+    tk.Label(ventana_login, text="Password",
+             font=FONT_NORMAL, fg=FG_COLOR, bg=BG_COLOR).pack()
 
-tk.Button(ventana_login, text="Registrarse",
-          bg=BTN_COLOR, fg=FG_COLOR,
-          font=FONT_NORMAL,
-          command=registrar).pack(pady=15)
+    entry_password = tk.Entry(ventana_login, show="*", font=FONT_NORMAL, width=25)
+    entry_password.pack(pady=5)
 
-tk.Button(ventana_login, text="Iniciar Sesión",
-          bg=BTN_COLOR, fg=FG_COLOR,
-          font=FONT_NORMAL,
-          command=login).pack(pady=10)
+    tk.Button(ventana_login, text="Registrarse",
+              bg=BTN_COLOR, fg=FG_COLOR,
+              font=FONT_NORMAL,
+              command=registrar).pack(pady=15)
 
-ventana_login.mainloop()
+    tk.Button(ventana_login, text="Iniciar Sesión",
+              bg=BTN_COLOR, fg=FG_COLOR,
+              font=FONT_NORMAL,
+              command=login).pack(pady=10)
+
+    ventana_login.mainloop()
+
+
+# INICIAR
+abrir_login()
