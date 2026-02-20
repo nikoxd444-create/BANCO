@@ -16,7 +16,7 @@ cursor = conexion.cursor()
 usuario_actual = None
 nombre_actual = None
 
-# ------------------ ESTILO NU ------------------
+# ------------------ ESTILO NU -------------------
 BG_COLOR = "#4C1D95"
 CARD_COLOR = "#5B21B6"
 BTN_COLOR = "#9333EA"
